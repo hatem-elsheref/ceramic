@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\RestAPI\v2\delivery_man\auth\LoginController;
-use App\Http\Controllers\RestAPI\v2\delivery_man\ChatController as DeliveryChatController;
+    use App\Http\Controllers\RestAPI\v2\delivery_man\ChatController as DeliveryChatController;
 use App\Http\Controllers\RestAPI\v2\Seller\ChatController as VendorChatController;
 use App\Http\Controllers\RestAPI\v2\delivery_man\DeliveryManController;
 use App\Http\Controllers\RestAPI\v2\delivery_man\WithdrawController;

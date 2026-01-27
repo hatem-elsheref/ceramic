@@ -14,8 +14,8 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
          $this->call([
-             // ClearAllDataSeeder::class,  // ⚠️ WARNING: Uncomment to clear ALL data from ALL tables first
-             // ClearProductsSeeder::class,  // Uncomment to clear old products first
+              ClearAllDataSeeder::class,  // ⚠️ WARNING: Uncomment to clear ALL data from ALL tables first
+              ClearProductsSeeder::class,  // Uncomment to clear old products first
              AdminRoleTable::class,
              AdminTable::class,
              SellerTableSeeder::class,

@@ -74,6 +74,37 @@ class AppServiceProvider extends ServiceProvider
             Config::set('get_payment_publish_status', $this->getPaymentPublishStatus());
             Config::set('get_theme_routes', $this->getThemeRoutesArray());
 
+            // Initialize web_config with default values to prevent undefined variable errors
+            $web_config = [
+                'primary_color' => '',
+                'secondary_color' => '',
+                'primary_color_light' => '',
+                'panel_sidebar_color' => '',
+                'name' => '',
+                'company_name' => '',
+                'phone' => '',
+                'web_logo' => null,
+                'mob_logo' => null,
+                'fav_icon' => null,
+                'email' => '',
+                'about' => '',
+                'footer_logo' => null,
+                'copyright_text' => '',
+                'decimal_point_settings' => 0,
+                'seller_registration' => 0,
+                'wallet_status' => 0,
+                'loyalty_point_status' => 0,
+                'guest_checkout_status' => 0,
+                'digital_product_setting' => null,
+                'language' => [],
+                'publishing_houses' => null,
+                'digital_product_authors' => null,
+                'firebase_otp_verification' => null,
+                'firebase_otp_verification_status' => 0,
+                'meta_description' => '',
+            ];
+            $language = [];
+
             try {
                 if (Schema::hasTable('business_settings')) {
                     $this->setStorageConnectionEnvironment();
@@ -219,12 +250,17 @@ class AppServiceProvider extends ServiceProvider
                     // Currency
                     \App\Utils\Helpers::currency_load();
 
-                    View::share(['web_config' => $web_config, 'language' => $language]);
-
                     Schema::defaultStringLength(191);
                 }
             } catch (\Exception $exception) {
-
+                // Log exception but continue with default values
+                \Log::error('AppServiceProvider: Error loading business settings', [
+                    'message' => $exception->getMessage(),
+                    'trace' => $exception->getTraceAsString()
+                ]);
+            } finally {
+                // Always share web_config with views, even if there was an error
+                View::share(['web_config' => $web_config, 'language' => $language]);
             }
         }
 
