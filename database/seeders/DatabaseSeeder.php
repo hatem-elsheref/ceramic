@@ -14,10 +14,11 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
          $this->call([
+             // ClearAllDataSeeder::class,  // ⚠️ WARNING: Uncomment to clear ALL data from ALL tables first
+             // ClearProductsSeeder::class,  // Uncomment to clear old products first
              AdminRoleTable::class,
              AdminTable::class,
              SellerTableSeeder::class,
-             // ClearProductsSeeder::class,  // Uncomment to clear old products first
              ProductionCeramicSeeder::class,  // Production-ready seeder with your brand
              BrandCategoryProductsSeeder::class,  // Add 10-15 products per brand and category
              UpdateFeaturedProductsSeeder::class,  // Update existing products to be featured
