@@ -28,27 +28,27 @@ class BrandCategoryProductsSeeder extends Seeder
     public function run()
     {
         echo "Starting Brand & Category Products Seeder...\n\n";
-        
+
         $this->faker = Faker::create();
         $this->availableImages = $this->getAvailableImages();
-        
+
         echo "Found " . count($this->availableImages) . " images available\n\n";
-        
+
         // Get all brands and categories
         $brands = Brand::where('status', 1)->get();
         $categories = Category::all();
         $mainCategories = Category::where('parent_id', 0)->get();
         $subCategories = Category::where('parent_id', '>', 0)->get();
-        
+
         echo "Brands: " . $brands->count() . "\n";
         echo "Categories: " . $categories->count() . " (Main: " . $mainCategories->count() . ", Sub: " . $subCategories->count() . ")\n\n";
-        
+
         // Create products for each brand (10-15 per brand)
         $this->createProductsForBrands($brands, $categories, $subCategories);
-        
+
         // Ensure each category has at least 10-15 products
         $this->ensureCategoryProductCount($categories, $brands, $subCategories);
-        
+
         echo "\n✅ Brand & Category Products Seeder completed!\n";
         echo "Total products created: " . ($this->productCounter - 1) . "\n";
     }
@@ -56,19 +56,19 @@ class BrandCategoryProductsSeeder extends Seeder
     private function createProductsForBrands($brands, $categories, $subCategories)
     {
         echo "Creating products for brands...\n";
-        
+
         $totalCreated = 0;
-        
+
         foreach ($brands as $brandIndex => $brand) {
             $productsPerBrand = rand(10, 15);
             echo "\nBrand: {$brand->name} - Creating {$productsPerBrand} products...\n";
-            
+
             $created = 0;
             for ($i = 0; $i < $productsPerBrand; $i++) {
                 // Distribute categories evenly
                 $categoryIndex = ($brandIndex * $productsPerBrand + $i) % $categories->count();
                 $category = $categories[$categoryIndex];
-                
+
                 // Prefer sub-categories if available, otherwise use main category
                 $subCategory = null;
                 if ($subCategories->isNotEmpty()) {
@@ -79,56 +79,56 @@ class BrandCategoryProductsSeeder extends Seeder
                         $subCategory = $subCategories->where('parent_id', $category->id)->first() ?? null;
                     }
                 }
-                
+
                 $product = $this->createProduct($brand, $category, $subCategory);
-                
+
                 if ($product) {
                     $created++;
                     $totalCreated++;
                 }
             }
-            
+
             echo "  ✓ Created {$created} products for {$brand->name}\n";
         }
-        
+
         echo "\n✓ Total products created for brands: {$totalCreated}\n";
     }
 
     private function ensureCategoryProductCount($categories, $brands, $subCategories)
     {
         echo "\nEnsuring each category has 10-15 products...\n";
-        
+
         $totalAdded = 0;
-        
+
         foreach ($categories as $category) {
             $currentCount = Product::where('category_id', $category->id)->count();
             $targetCount = rand(10, 15);
-            
+
             if ($currentCount < $targetCount) {
                 $needed = $targetCount - $currentCount;
                 echo "Category: {$category->name} - Has {$currentCount}, needs {$needed} more...\n";
-                
+
                 for ($i = 0; $i < $needed; $i++) {
                     // Assign to a random brand
                     $brand = $brands->random();
-                    
+
                     // Get sub-category if available
                     $subCategory = null;
                     if ($subCategories->isNotEmpty()) {
                         $subCategory = $subCategories->where('parent_id', $category->id)->first() ?? null;
                     }
-                    
+
                     $product = $this->createProduct($brand, $category, $subCategory);
-                    
+
                     if ($product) {
                         $totalAdded++;
                     }
                 }
-                
+
                 echo "  ✓ Added {$needed} products to {$category->name}\n";
             }
         }
-        
+
         echo "\n✓ Total additional products added: {$totalAdded}\n";
     }
 
@@ -137,30 +137,30 @@ class BrandCategoryProductsSeeder extends Seeder
         try {
             // Generate product code
             $code = 'PCT-' . str_pad($this->productCounter++, 4, '0', STR_PAD_LEFT);
-            
+
             // Check if product with this code already exists
             if (Product::where('code', $code)->exists()) {
                 $code = 'PCT-' . str_pad($this->productCounter++, 4, '0', STR_PAD_LEFT) . '-' . Str::random(3);
             }
-            
+
             // Generate product names and details
             $productData = $this->generateProductData($category, $brand);
-            
+
             // Get image
             $imageName = $this->getNextImage();
             $thumbnailName = $this->createThumbnail($imageName, $code);
-            
+
             $images = json_encode([
                 ['image_name' => $imageName, 'storage' => 'public'],
                 ['image_name' => $imageName, 'storage' => 'public'],
             ]);
-            
+
             // Generate pricing
             $unitPrice = $this->faker->randomFloat(2, 25, 200);
             $purchasePrice = $unitPrice * 0.65; // 35% margin
             $discount = $this->faker->randomFloat(2, 5, 25);
             $stock = $this->faker->numberBetween(100, 1000);
-            
+
             $product = Product::create([
                 'added_by' => 'admin',
                 'user_id' => 1,
@@ -209,7 +209,7 @@ class BrandCategoryProductsSeeder extends Seeder
                 'video_url' => null,
                 'attributes' => json_encode([]),
             ]);
-            
+
             // Add Arabic translations
             Translation::create([
                 'translationable_type' => 'App\Models\Product',
@@ -218,7 +218,7 @@ class BrandCategoryProductsSeeder extends Seeder
                 'key' => 'name',
                 'value' => $productData['ar_name'],
             ]);
-            
+
             Translation::create([
                 'translationable_type' => 'App\Models\Product',
                 'translationable_id' => $product->id,
@@ -226,7 +226,7 @@ class BrandCategoryProductsSeeder extends Seeder
                 'key' => 'description',
                 'value' => $productData['ar_details'],
             ]);
-            
+
             // Create SEO data
             ProductSeo::create([
                 'product_id' => $product->id,
@@ -245,9 +245,9 @@ class BrandCategoryProductsSeeder extends Seeder
                 'max_image_preview_value' => null,
                 'image' => $thumbnailName,
             ]);
-            
+
             return $product;
-            
+
         } catch (\Exception $e) {
             echo "  ✗ Error creating product: " . $e->getMessage() . "\n";
             return null;
@@ -260,7 +260,7 @@ class BrandCategoryProductsSeeder extends Seeder
         $categoryNameAr = $category->translations->where('key', 'name')->where('locale', 'sa')->first()->value ?? $categoryNameEn;
         $brandNameEn = $brand->name;
         $brandNameAr = $brand->translations->where('key', 'name')->where('locale', 'sa')->first()->value ?? $brandNameEn;
-        
+
         // Product name templates
         $nameTemplates = [
             'en' => [
@@ -282,7 +282,7 @@ class BrandCategoryProductsSeeder extends Seeder
                 '{category} {brand} أنيق {texture}',
             ],
         ];
-        
+
         $sizes = ['30x30', '40x40', '50x50', '60x60', '80x80', '60x120', '120x120'];
         $styles = ['Design', 'Pattern', 'Collection', 'Series', 'Edition'];
         $colors = ['White', 'Beige', 'Gray', 'Black', 'Brown', 'Cream'];
@@ -290,7 +290,7 @@ class BrandCategoryProductsSeeder extends Seeder
         $finishes = ['Glossy', 'Matte', 'Polished', 'Textured', 'Smooth'];
         $designs = ['Modern', 'Traditional', 'Minimalist', 'Ornate', 'Simple'];
         $textures = ['Smooth', 'Rough', 'Embossed', 'Relief', '3D'];
-        
+
         $size = $sizes[array_rand($sizes)];
         $style = $styles[array_rand($styles)];
         $color = $colors[array_rand($colors)];
@@ -298,7 +298,7 @@ class BrandCategoryProductsSeeder extends Seeder
         $finish = $finishes[array_rand($finishes)];
         $design = $designs[array_rand($designs)];
         $texture = $textures[array_rand($textures)];
-        
+
         // Arabic translations
         $sizeAr = ['30x30', '40x40', '50x50', '60x60', '80x80', '60x120', '120x120'];
         $styleAr = ['تصميم', 'نمط', 'مجموعة', 'سلسلة', 'إصدار'];
@@ -307,27 +307,27 @@ class BrandCategoryProductsSeeder extends Seeder
         $finishAr = ['لامع', 'مطفي', 'مصقول', 'منسوج', 'ناعم'];
         $designAr = ['عصري', 'تقليدي', 'بسيط', 'منقوش', 'بسيط'];
         $textureAr = ['ناعم', 'خشن', 'بارز', 'نقش', 'ثلاثي الأبعاد'];
-        
+
         $templateEn = $nameTemplates['en'][array_rand($nameTemplates['en'])];
         $templateAr = $nameTemplates['ar'][array_rand($nameTemplates['ar'])];
-        
+
         $enName = str_replace(
             ['{category}', '{brand}', '{size}', '{style}', '{color}', '{pattern}', '{finish}', '{design}', '{texture}'],
             [$categoryNameEn, $brandNameEn, $size, $style, $color, $pattern, $finish, $design, $texture],
             $templateEn
         );
-        
+
         $arName = str_replace(
             ['{category}', '{brand}', '{size}', '{style}', '{color}', '{pattern}', '{finish}', '{design}', '{texture}'],
             [$categoryNameAr, $brandNameAr, $size, $sizeAr[array_rand($sizeAr)], $colorAr[array_rand($colorAr)], $patternAr[array_rand($patternAr)], $finishAr[array_rand($finishAr)], $designAr[array_rand($designAr)], $textureAr[array_rand($textureAr)]],
             $templateAr
         );
-        
+
         // Generate descriptions
         $enDetails = "High-quality {$categoryNameEn} from {$brandNameEn}. Perfect for modern interiors. Available in {$size} size. Durable, easy to clean, and suitable for residential and commercial projects. Made with premium materials for long-lasting beauty.";
-        
+
         $arDetails = "{$categoryNameAr} عالي الجودة من {$brandNameAr}. مثالي للديكورات الداخلية العصرية. متاح بحجم {$size}. متين وسهل التنظيف ومناسب للمشاريع السكنية والتجارية. مصنوع من مواد ممتازة لجمال دائم.";
-        
+
         return [
             'en_name' => $enName,
             'ar_name' => $arName,
@@ -340,7 +340,7 @@ class BrandCategoryProductsSeeder extends Seeder
     {
         $imagePath = storage_path('app/public/product');
         $images = [];
-        
+
         if (is_dir($imagePath)) {
             $files = scandir($imagePath);
             foreach ($files as $file) {
@@ -352,12 +352,12 @@ class BrandCategoryProductsSeeder extends Seeder
                 }
             }
         }
-        
+
         // If no images found, return default
         if (empty($images)) {
             return ['def.webp'];
         }
-        
+
         return $images;
     }
 
@@ -366,10 +366,10 @@ class BrandCategoryProductsSeeder extends Seeder
         if (empty($this->availableImages)) {
             return 'def.webp';
         }
-        
+
         $image = $this->availableImages[$this->usedImageIndex % count($this->availableImages)];
         $this->usedImageIndex++;
-        
+
         return $image;
     }
 
@@ -378,25 +378,28 @@ class BrandCategoryProductsSeeder extends Seeder
         $thumbName = strtolower($code) . '-thumb.webp';
         $imagePath = storage_path('app/public/product/' . $imageName);
         $thumbPath = storage_path('app/public/product/thumbnail/' . $thumbName);
-        
+
         // Check if thumbnail already exists
         if (Storage::disk('public')->exists('product/thumbnail/' . $thumbName)) {
             return $thumbName;
         }
-        
+
         // Create thumbnail directory if needed
         $thumbDir = dirname($thumbPath);
         if (!is_dir($thumbDir)) {
             mkdir($thumbDir, 0755, true);
         }
-        
+
         // Copy image as thumbnail if it exists
         if (file_exists($imagePath) && $imageName != 'def.webp') {
             copy($imagePath, $thumbPath);
             return $thumbName;
         }
-        
+
         // Use same image name if default or image doesn't exist
         return $imageName;
     }
 }
+
+
+//"[\"order.created\",\"order.updated\",\"order.deleted\",\"order.restored\"]"
