@@ -109,6 +109,14 @@ trait FileManagerTrait
         Config::set('filesystems.disks.default', $storageConnectionType);
         $storageConnectionS3Credential = getWebConfig(name: 'storage_connection_s3_credential');
         if ($storageConnectionType == 's3' && !empty($storageConnectionS3Credential)) {
+            // Ensure use_path_style_endpoint is set for MinIO (non-AWS endpoints)
+            if (is_array($storageConnectionS3Credential)) {
+                $endpoint = $storageConnectionS3Credential['endpoint'] ?? '';
+                // If endpoint exists and is not AWS, enable path style endpoint for MinIO
+                if (!empty($endpoint) && !str_contains($endpoint, 'amazonaws.com')) {
+                    $storageConnectionS3Credential['use_path_style_endpoint'] = true;
+                }
+            }
             Config::set('filesystems.disks.' . $storageConnectionType, $storageConnectionS3Credential);
         }
     }

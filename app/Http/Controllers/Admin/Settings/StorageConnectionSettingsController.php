@@ -117,6 +117,7 @@ class StorageConnectionSettingsController extends BaseController
             'url' => $request['s3_url'],
             'visibility' => 'public',
             'endpoint' => $request['s3_endpoint'],
+            'use_path_style_endpoint' => !empty($request['s3_endpoint']) && !str_contains($request['s3_endpoint'], 'amazonaws.com'), // Auto-detect MinIO
         ];
         $credentials = [
             'key' => $data['key'],

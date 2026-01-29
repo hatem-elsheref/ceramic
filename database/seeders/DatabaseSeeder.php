@@ -14,20 +14,25 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
          $this->call([
-              //ClearAllDataSeeder::class,  // ⚠️ WARNING: Uncomment to clear ALL data from ALL tables first
-              ClearProductsSeeder::class,  // Uncomment to clear old products first
-             AdminRoleTable::class,
-             AdminTable::class,
-             SellerTableSeeder::class,
+             // Step 1: Clean everything
+             ClearAllDataSeeder::class,  // Clear ALL data from ALL tables
+
+             // Step 2: Production setup (public storage, clear cache)
+             ProductionSetupSeeder::class,  // Set public storage, clear cache, setup directories
+
+             // Step 3: Seed production data
+//             AdminRoleTable::class,
+//             AdminTable::class,
+//             SellerTableSeeder::class,
              ProductionCeramicSeeder::class,  // Production-ready seeder with your brand
              BrandCategoryProductsSeeder::class,  // Add 10-15 products per brand and category
              UpdateFeaturedProductsSeeder::class,  // Update existing products to be featured
-             StaticPagesSeeder::class,  // Static pages (About Us, Terms, Privacy, etc.)
+//             StaticPagesSeeder::class,  // Static pages (About Us, Terms, Privacy, etc.)
              CategoryBrandImagesSeeder::class,  // Assign images to categories and brands
              HeroBannerSeeder::class,  // Hero section banners for home page
              AllBannersSeeder::class,  // All banner types with images
              CompleteSetupSeeder::class,  // Complete setup: Logo, Categories, Payments, Banners
-             FixArabicTranslations::class,  // Fix Arabic translations for ceramic e-commerce
+//             FixArabicTranslations::class,  // Fix Arabic translations for ceramic e-commerce
          ]);
     }
 }
